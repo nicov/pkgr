@@ -5,6 +5,12 @@ require 'pkgr/env'
 
 module Pkgr
   class CLI < Thor
+    no_tasks do
+      def self.default_data_dir
+        File.expand_path("../../../data", __FILE__)
+      end
+    end
+
     class_option :verbose,
       :type => :boolean,
       :default => false,
@@ -37,8 +43,7 @@ module Pkgr
       :desc => "Maintainer"
     method_option :vendor,
       :type => :string,
-      :desc => "Package vendor",
-      :default => "pkgr <https://github.com/crohr/pkgr>"
+      :desc => "Package vendor"
     method_option :architecture,
       :type => :string,
       :default => "x86_64",
@@ -52,6 +57,10 @@ module Pkgr
     method_option :description,
       :type => :string,
       :desc => "Project description"
+    method_option :category,
+      :type => :string,
+      :default => "none",
+      :desc => "Category this package belongs to"
     method_option :version,
       :type => :string,
       :desc => "Package version (if git directory given, it will use the latest git tag available)"
@@ -100,6 +109,10 @@ module Pkgr
       :type => :array,
       :default => [],
       :desc => "Specific system dependencies that must be present before building"
+    method_option :disable_default_dependencies,
+      :type => :boolean,
+      :default => false,
+      :desc => "Disable default dependencies"
     method_option :host,
       :type => :string,
       :desc => "Remote host to build on (default: local machine)"
@@ -129,10 +142,23 @@ module Pkgr
       :type => :boolean,
       :default => true,
       :desc => "Verifies output package"
+    method_option :data_dir,
+      :type => :string,
+      :default => default_data_dir,
+      :desc => "Custom path to data directory. Can be used for overriding default templates, hooks(pre-, post- scripts), configs (buildpacks, distro dependencies), environments, etc."
+    method_option :directories,
+      :type => :string,
+      :default => nil,
+      :desc => "Recursively mark a directory as being owned by the package"
+    method_option :disable_cli,
+      :type => :boolean,
+      :default => false,
+      :desc => "Disable installing CLI"
 
     def package(tarball)
       Pkgr.level = Logger::INFO if options[:verbose]
       Pkgr.level = Logger::DEBUG if options[:debug]
+      Pkgr.data_dir = options[:data_dir]
 
       Pkgr::Buildpack.buildpacks_cache_dir = options[:buildpacks_cache_dir] if options[:buildpacks_cache_dir]
 

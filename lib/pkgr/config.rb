@@ -73,7 +73,19 @@ module Pkgr
     end
 
     def cli?
-      @table.has_key?(:cli) ? @table[:cli] : true
+      if disable_cli.nil?
+        @table.has_key?(:cli) ? @table[:cli] : true
+      else
+        !disable_cli
+      end
+    end
+
+    def skip_default_dependencies?
+      if disable_default_dependencies.nil?
+        @table[:default_dependencies] === false
+      else
+        disable_default_dependencies == true
+      end
     end
 
     def home
@@ -102,6 +114,10 @@ module Pkgr
 
     def maintainer
       @table[:maintainer] || "<someone@pkgr>"
+    end
+
+    def vendor
+      @table[:vendor] || "pkgr <https://github.com/crohr/pkgr>"
     end
 
     def env
